@@ -37,7 +37,7 @@ final class LocalTaskReader {
         let path = root.appendingPathComponent("state_5.sqlite").path
         guard sqlite3_open_v2(path, &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK else {
             if let db { sqlite3_close(db) }
-            throw SourceFailure(message: "无法读取 Codex 数据库，请检查数据目录")
+            throw SourceFailure(message: L10n.text("无法读取 Codex 数据库，请检查数据目录"))
         }
         defer { sqlite3_close(db) }
         sqlite3_busy_timeout(db, 250)
@@ -48,7 +48,7 @@ final class LocalTaskReader {
         }
         // SQLite URI prevents ATTACH from creating or writing a missing history store.
         let history = root.appendingPathComponent("thread_history_1.sqlite")
-        guard FileManager.default.fileExists(atPath: history.path) else { throw SourceFailure(message: "缺少 Codex 任务历史库") }
+        guard FileManager.default.fileExists(atPath: history.path) else { throw SourceFailure(message: L10n.text("缺少 Codex 任务历史库")) }
         let uri = history.absoluteString + "?mode=ro"
         try run("ATTACH DATABASE '\(uri.replacingOccurrences(of: "'", with: "''"))' AS history")
         try run("PRAGMA query_only=ON")
@@ -68,7 +68,7 @@ final class LocalTaskReader {
         """
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            throw SourceFailure(message: "Codex 数据结构不兼容：" + String(cString: sqlite3_errmsg(db)))
+            throw SourceFailure(message: L10n.text("Codex 数据结构不兼容：") + String(cString: sqlite3_errmsg(db)))
         }
         defer { sqlite3_finalize(stmt) }
         func str(_ i: Int32) -> String { sqlite3_column_text(stmt,i).map { String(cString:$0) } ?? "" }
@@ -81,14 +81,14 @@ final class LocalTaskReader {
             let id = str(0), status = str(3), started = sqlite3_column_double(stmt,4)
             // Match the app's active-turn state, restricted to today's turns (Asia/Shanghai).
             if (status == "inProgress" && started >= today) || (status == "completed" && unreadIDs.contains(id)) {
-                let title = str(2).components(separatedBy: .newlines).first ?? "Codex 任务"
+                let title = str(2).components(separatedBy: .newlines).first ?? L10n.text("Codex 任务")
                 tasks.append(TaskEntry(id:id,turnID:str(1),title:title,status:status,startedAt:started,
                     completedAt:sqlite3_column_double(stmt,5),unread:unreadIDs.contains(id),
-                    detail:status == "inProgress" ? "正在执行" : "完成 · 未读",url:"codex://threads/\(id)"))
+                    detail:status == "inProgress" ? L10n.text("正在执行") : L10n.text("完成 · 未读"),url:"codex://threads/\(id)"))
             }
             code = sqlite3_step(stmt)
         }
-        guard code == SQLITE_DONE else { throw SourceFailure(message: "任务读取中断") }
+        guard code == SQLITE_DONE else { throw SourceFailure(message: L10n.text("任务读取中断")) }
         return tasks
     }
 }

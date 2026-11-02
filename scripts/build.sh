@@ -13,16 +13,19 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>TaskPulse</string>
 <key>CFBundleIdentifier</key><string>site.momentu.taskpulse</string>
-<key>CFBundleName</key><string>任务脉搏</string>
-<key>CFBundleDisplayName</key><string>任务脉搏</string>
+<key>CFBundleName</key><string>TaskPulse</string>
+<key>CFBundleDisplayName</key><string>TaskPulse</string>
+<key>CFBundleDevelopmentRegion</key><string>en</string>
+<key>CFBundleLocalizations</key><array><string>en</string><string>zh-Hans</string><string>zh-Hant</string></array>
 <key>CFBundleIconFile</key><string>AppIcon</string>
-<key>CFBundleVersion</key><string>2</string>
-<key>CFBundleShortVersionString</key><string>0.2.0</string>
+<key>CFBundleVersion</key><string>3</string>
+<key>CFBundleShortVersionString</key><string>0.3.0</string>
 <key>LSMinimumSystemVersion</key><string>15.0</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
+cp -R Resources/* "$APP/Contents/Resources/"
 cp assets/AppIcon.icns "$APP/Contents/Resources/"
 cp LICENSE "$APP/Contents/Resources/"
 cp LICENSE-Codenotch "$APP/Contents/Resources/"

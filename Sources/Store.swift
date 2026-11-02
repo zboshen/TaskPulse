@@ -41,12 +41,20 @@ import SwiftUI
     }
     private var dismissed = Set(UserDefaults.standard.stringArray(forKey:"dismissed") ?? [])
     private var timer: Timer?
+    private var languageObserver: NSObjectProtocol?
     private var loading = false
     var visible: [TaskEntry] { TaskPolicy.visible(tasks,dismissed:dismissed) }
     var runningCount: Int { tasks.filter(\.running).count }
     var unreadCount: Int { tasks.filter { $0.status == "completed" && $0.unread && !dismissed.contains($0.receiptKey) }.count }
     var reposition: (() -> Void)?
     func start() {
+        languageObserver = NotificationCenter.default.addObserver(forName:NSLocale.currentLocaleDidChangeNotification,object:nil,queue:.main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                self.objectWillChange.send()
+                if self.demo { self.demo = false; self.toggleDemo() } else { self.refresh() }
+            }
+        }
         refresh()
         timer = Timer.scheduledTimer(withTimeInterval:2,repeats:true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
@@ -70,7 +78,7 @@ import SwiftUI
         // The desktop app routes codex://new?mode=codex to a blank new-thread composer.
         guard let url = URL(string:"codex://new?mode=codex") else { return }
         if !NSWorkspace.shared.open(url) {
-            error = "无法打开 Codex 新聊天，请确认应用已安装"
+            error = L10n.text("无法打开 Codex 新聊天，请确认应用已安装")
         }
     }
     func open(_ task: TaskEntry) {
@@ -93,9 +101,9 @@ import SwiftUI
         if demo {
             let now = Date().timeIntervalSince1970
             tasks = [
-                TaskEntry(id:"demo-1",turnID:"1",title:"构建你的桌面任务组件",status:"inProgress",startedAt:now-130,unread:false,detail:"正在编译与验证",url:""),
-                TaskEntry(id:"demo-2",turnID:"1",title:"为产品页面生成交互原型",status:"inProgress",startedAt:now-630,unread:false,detail:"正在完善界面细节",url:""),
-                TaskEntry(id:"demo-3",turnID:"1",title:"整理本周开发进展",status:"completed",startedAt:now-1500,completedAt:now-80,unread:true,detail:"报告已准备好 · 未读",url:"")]
+                TaskEntry(id:"demo-1",turnID:"1",title:L10n.text("构建你的桌面任务组件"),status:"inProgress",startedAt:now-130,unread:false,detail:L10n.text("正在编译与验证"),url:""),
+                TaskEntry(id:"demo-2",turnID:"1",title:L10n.text("为产品页面生成交互原型"),status:"inProgress",startedAt:now-630,unread:false,detail:L10n.text("正在完善界面细节"),url:""),
+                TaskEntry(id:"demo-3",turnID:"1",title:L10n.text("整理本周开发进展"),status:"completed",startedAt:now-1500,completedAt:now-80,unread:true,detail:L10n.text("报告已准备好 · 未读"),url:"")]
         } else { tasks = []; refresh() }
     }
 }

@@ -1,6 +1,6 @@
-# 开发
+# Development
 
-macOS 15+，安装 Apple Command Line Tools：`xcode-select --install`。
+Requires macOS 15+ and Apple Command Line Tools (`xcode-select --install`).
 
 ```sh
 ./scripts/build.sh
@@ -8,16 +8,21 @@ macOS 15+，安装 Apple Command Line Tools：`xcode-select --install`。
 ./scripts/package.sh
 ```
 
-构建同时编译 arm64 和 x86_64，再用 lipo 合并为 Universal app。本地临时签名，无第三方 Swift 包依赖。Intel 产物完成交叉编译，尚未在 Intel 实机验证。
+The build compiles arm64 and x86_64, combines them with lipo, and ad-hoc signs the app. No third-party Swift package dependencies. The Intel binary is cross-compiled, not yet tested on Intel hardware.
 
-`--self-test` 检查任务优先级、已读过滤、账户/主机隔离、日期倒序、尺寸计算、位置移动和边界限制，使用 precondition，优化构建下仍会执行。真实状态验证可运行 `--dump`，仅在本机查看，勿将输出提交到仓库。
+Policy checks cover task ordering, unread filtering, account/host isolation, date ordering, resize anchoring, movement bounds, preferred-language selection, and English translation coverage. Checks use precondition and remain active in optimized builds.
+
+For real local state, run `--dump`. Keep its output private; do not commit or upload it.
+
+## English and Chinese previews
 
 ```sh
-./dist/TaskPulse.app/Contents/MacOS/TaskPulse --preview --size medium /tmp/taskpulse-demo.png
+./dist/TaskPulse.app/Contents/MacOS/TaskPulse --preview --language en --size medium /tmp/taskpulse-en.png
+./dist/TaskPulse.app/Contents/MacOS/TaskPulse --preview --language zh-Hans --size medium /tmp/taskpulse-zh.png
 ```
 
-截图模式只使用虚构任务；不会输出真实会话。`--demo` 启动演示模式，可在菜单退出。
+Previews use fictional tasks only. `--language` is a process-local development override; it does not change system language preferences. Normal launches follow the first macOS preferred language: Chinese for zh, English for anything else. `--demo` opens an interactive demo, which can be exited from the menu.
 
-## 来源
+## Attribution
 
-复用 [CodeNotch](https://github.com/vinzdg/codenotch) commit `6522e9f3ee0fe35d46e428b441e6e80b586eacbb` 的 `SideNotchShape.swift` 与 `NotchMotion.swift`，保留原 MIT 声明于 `LICENSE-Codenotch`。其余任务筛选、桌面布局、状态适配和偏好管理属于 TaskPulse。
+`SideNotchShape.swift` and `NotchMotion.swift` are from [CodeNotch](https://github.com/vinzdg/codenotch), commit `6522e9f3ee0fe35d46e428b441e6e80b586eacbb`. Its original MIT notice is in `LICENSE-Codenotch`. TaskPulse provides the task filtering, desktop layout, local state adapter, and preferences.

@@ -15,7 +15,7 @@ enum DesktopUnread {
               let claims = claims(token),let ns = claims["https://api.openai.com/auth"] as? [String:Any],
               let account = ns["chatgpt_account_id"] as? String,
               let user = (ns["chatgpt_user_id"] ?? ns["user_id"]) as? String else {
-            throw SourceFailure(message:"无法识别当前应用账户，未读状态暂不可用")
+            throw SourceFailure(message:L10n.text("无法识别当前应用账户，未读状态暂不可用"))
         }
         let identity = try hash(["chatgpt",account,user])
         let host = "local:" + (try hash(["local","local",NSNull()]))
@@ -25,7 +25,7 @@ enum DesktopUnread {
         guard let state = global["electron-thread-read-state-v1"] as? [String:Any],
               state["version"] as? Int == 1,
               let identities = state["unreadByIdentity"] as? [String:Any] else {
-            throw SourceFailure(message:"当前应用未读状态尚不可用")
+            throw SourceFailure(message:L10n.text("当前应用未读状态尚不可用"))
         }
         let hosts = identities[identity] as? [String:Any] ?? [:]
         return Set(hosts[host] as? [String] ?? [])

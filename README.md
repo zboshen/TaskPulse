@@ -1,76 +1,78 @@
-<p align="center"><img src="assets/icon.png" width="112" alt="TaskPulse icon"></p>
-<h1 align="center">TaskPulse · 任务脉搏<br>Codex 桌面任务组件</h1>
-<p align="center"><b>让 Codex 放手去做，让任务进度留在眼角。</b><br>A lightweight Codex desktop widget &amp; task tracker for macOS.</p>
+<p align="center"><img src="assets/icon.png" width="112" alt="TaskPulse app icon"></p>
+<h1 align="center">TaskPulse</h1>
+<p align="center"><b>Let Codex work. Keep its progress in the corner of your eye.</b><br>A lightweight Codex desktop widget &amp; task tracker for macOS.</p>
 <p align="center">
-<a href="https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg">下载 macOS App</a> ·
-<a href="https://github.com/zboshen/TaskPulse/releases">版本更新</a> ·
-<a href="https://github.com/zboshen/TaskPulse/issues">反馈建议</a> ·
-<a href="README.en.md">English</a>
+<a href="https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg">Download for macOS</a> ·
+<a href="https://github.com/zboshen/TaskPulse/releases">Releases</a> ·
+<a href="https://github.com/zboshen/TaskPulse/issues">Feedback</a> ·
+<a href="README.zh-CN.md">简体中文</a>
 </p>
 
-<p align="center"><img src="assets/preview.png" width="380" alt="TaskPulse 虚构任务演示：进行中与未读完成任务"></p>
+<p align="center"><img src="assets/preview.png" width="380" alt="TaskPulse English demo: running Codex tasks and unread completed results"></p>
 
-TaskPulse 是一款轻量级 **Codex 桌面组件**，也是专注执行状态的 **Codex 任务组件**。它把任务进度侧边栏吸附在 Mac 屏幕边缘：哪些会话正在执行、哪些结果完成但尚未阅读，一眼就能知道。
+Codex has a few tasks running. You have something else to do. **TaskPulse** keeps a small card at your screen edge so you can see what is still working and which results are ready to read, without repeatedly switching back to the main window.
 
-Codex 同时跑着几个任务时，这张 macOS 桌面任务卡片会帮你跟进进度，无需反复切回主窗口。原生菜单栏常驻，支持主副显示器、拖动布局与开机启动。
+A native **Codex desktop widget**, **task tracker**, and **task monitor** for your Mac. Inspired by [CodeNotch](https://github.com/vinzdg/codenotch), with its MIT-licensed edge shape and spring animations reused with attribution. TaskPulse focuses that interaction on one thing: following your local Codex tasks.
 
-**Codex desktop widget · task tracker · task monitor · macOS sidebar**
+## Small by design
 
-界面与动效受 [CodeNotch](https://github.com/vinzdg/codenotch) 启发，并直接复用了其 MIT 授权的贴边轮廓与弹簧动画。TaskPulse 将这个交互收敛到一个目标：**跟进 Codex 的本机任务执行状态**。
+- **Native SwiftUI + AppKit.** No Electron or embedded browser runtime.
+- **No third-party Swift package dependencies.** Built with system frameworks and SQLite.
+- **No separate backend or API key setup.** Read-only local status sync every two seconds.
+- **No ads or telemetry.** Local login identity claims are used only to select the right account's unread list; tokens are never sent or uploaded.
+- **A menu bar companion.** Hidden from the Dock by default, with optional launch at login.
 
-## 轻量，具体在哪里
+The initial download is around **2 MB**. “Lightweight” describes the implementation and dependency footprint; we do not claim unmeasured CPU, memory, or battery figures.
 
-- **Swift + SwiftUI + AppKit 原生实现**，无 Electron、无内置浏览器运行时。
-- **无第三方 Swift 包依赖**，使用系统框架与 SQLite。
-- **无需独立服务端，也不用填写 API Key**，每 2 秒只读同步本机状态。
-- **无广告、无遥测**。本机登录信息只用于区分未读列表所属账户，不发送或上传令牌。
-- 菜单栏常驻，默认隐藏 Dock；工作时留在屏幕边缘，需要时再展开。
+## Just the tasks that need your attention
 
-“轻量”指实现结构与依赖范围；我们没有把未经测试的 CPU、内存或续航数字写进介绍。
-
-## 把注意力留给正在做的事
-
-| 功能 | 行为 |
+| Feature | How it works |
 |---|---|
-| 进行中 | 仅显示北京时间今天开始、当前轮仍在执行的 Codex 会话；新开始的优先 |
-| 已完成 | 仅显示当前账户、本机的未读完成任务，按完成时间倒序；已读自动消失 |
-| 最多 5 条 | 进行中先占位置，剩余位置留给未读结果；进行中 ≥ 5 时不展示已完成 |
-| 一键新建 | 顶部“＋对话框”直接打开 Codex 新聊天编辑框 |
-| 主副屏任选 | 选择主显示器或具体副显示器，左侧/右侧贴边 |
-| 拖动位置 | 按住标题上下移动，位置自动记住；支持恢复居中 |
-| 拖动大小 | 拉动内侧细竖条，字体、间距、卡片随宽度调整 |
-| 大中小 | 设置中提供三种内容大小，超高内容可滚动 |
-| 开机启动 | 可选，通过 macOS 原生登录项管理，默认关闭 |
-| Dock 隐藏 | 可选，默认隐藏；菜单栏图标始终保留 |
+| In progress | Turns started today in Asia/Shanghai that are still running, newest starts first |
+| Completed | Only unread results for the current account and local host, latest completion first; read results disappear |
+| Up to five tasks | Running work takes priority; unread completions fill the remaining slots |
+| New chat | Open a blank Codex chat from the header button |
+| Multiple displays | Choose the primary display or a specific secondary display, with left or right edge docking |
+| Drag to move | Move the card vertically by its title; position is remembered |
+| Drag to resize | Pull the inner edge; text, spacing, and cards adapt to the width |
+| Content size | Small, Medium, and Large presets, with scrolling for tall content |
+| Launch at login | Optional, managed by macOS Login Items |
+| Hide from Dock | Optional, enabled by default; the menu bar icon stays available |
 
-## 下载与安装
+## English or Chinese, automatically
 
-首个公开版本的 DMG 约 **1.9 MB**，ZIP 约 **1.6 MB**（v0.2.0）。
+TaskPulse follows your macOS preferred language: **Chinese if your first preferred language is Chinese, English otherwise**. French, Japanese, German, and other languages use the English interface for now.
 
-**macOS 15 或更新版本。Universal：Apple Silicon + Intel。** Intel 架构已编译，尚未进行 Intel 实机验证。
+Sections, menus, tooltips, accessibility labels, status messages, and elapsed time are localized. Your actual conversation titles stay in their original language. If macOS asks you to restart the app after a language change, quit and reopen TaskPulse. No language switch needs to be configured inside the widget.
 
-1. [下载 TaskPulse.dmg](https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg)。也可在 [Releases](https://github.com/zboshen/TaskPulse/releases) 下载 ZIP 和 SHA-256 校验文件。
-2. 打开 DMG，将 **TaskPulse.app** 拖入 **Applications（应用程序）**。
-3. 启动后，从卡片右上角设置选择显示器、吸附方向与内容大小。开机启动需安装到应用程序目录后手动开启。
+## Download and install
 
-首版采用临时签名，**尚未经过 Apple 公证**，首次运行可能被 macOS 拦截。如确认下载来源为本仓库，可在系统设置 → 隐私与安全性中按系统提供的流程允许打开。我们不提供自动绕过系统安全检查的脚本。
+**macOS 15 or later. Universal: Apple Silicon + Intel.** The Intel binary is cross-compiled but has not yet been verified on Intel hardware.
 
-## 订阅我们
+1. [Download TaskPulse.dmg](https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg). A ZIP and SHA-256 checksums are also available on [Releases](https://github.com/zboshen/TaskPulse/releases).
+2. Open the DMG and drag **TaskPulse.app** into **Applications**.
+3. Launch it and use the header settings to choose your display, docking edge, and content size. Enable launch at login after installation if you want it.
 
-想跟进新功能和新版本？在仓库右上角点 **Watch → Custom → Releases** 订阅版本发布；点 **Star** 收藏项目，也欢迎 [Follow @zboshen](https://github.com/zboshen) 关注后续作品。
+The app is ad-hoc signed and **not notarized by Apple**. macOS may block the first launch. Only if you trust the download from this repository, use the system's Privacy & Security flow to allow it. We do not provide scripts that automatically bypass security checks.
 
-也可以用 RSS 阅读器订阅 [Release Feed](https://github.com/zboshen/TaskPulse/releases.atom)。首版没有自动更新器，请从 Releases 获取新版。
+## Stay in the loop
 
-## 使用小提示
+Choose **Watch → Custom → Releases** to subscribe to new versions. **Star** the repository to keep it handy, or [follow @zboshen](https://github.com/zboshen) for future projects.
 
-悬停展开，图钉固定展开；取消固定后移出鼠标自动收起。点击任务回到原会话，已读状态由 Codex 自己更新。已完成行的 × 仅在小组件中收起当前轮结果，下一轮完成仍可再次出现。
+An [Atom release feed](https://github.com/zboshen/TaskPulse/releases.atom) is available for feed readers. This version does not include an auto-updater.
 
-**兼容说明：** 首版适配当前 Codex 桌面版本的默认本机执行主机数据。不是 OpenAI 官方产品，也不覆盖远程任务、独立 ChatGPT/网页或应用内走独立 ChatGPT 后端的普通聊天。底层本地结构可能随 Codex 更新改变，遇到问题欢迎提交 Issue。
+## A few useful details
 
-更多信息：[隐私与数据来源](docs/PRIVACY.md) · [源码构建与验证](docs/DEVELOPMENT.md)。
+Hover to expand. Pin the card to keep it open, or unpin it to collapse when the pointer leaves. Click a task to open the original conversation; Codex records its actual read state. The × button only dismisses the current result inside TaskPulse. A later completed turn can appear again.
 
-## 致谢与许可
+**Compatibility:** TaskPulse is an independent community project, not affiliated with OpenAI. The adapter targets the default local Codex execution host. It does not cover remote tasks, standalone ChatGPT/web, or ordinary chats using a separate ChatGPT backend. Local schemas may change with Codex updates; please open an Issue if something stops working. Execution filtering and displayed dates currently use **Asia/Shanghai**; interface language does not change that rule.
 
-感谢 [vinzdg/codenotch](https://github.com/vinzdg/codenotch) 对屏幕边缘交互的探索。贴边形状和动画来自 CodeNotch，原版权声明完整保留在 [LICENSE-Codenotch](LICENSE-Codenotch)。
+[Privacy and data sources](docs/PRIVACY.md) · [Build and verify](docs/DEVELOPMENT.md)
 
-TaskPulse 以 [MIT](LICENSE) 协议开源。欢迎使用、反馈和贡献。
+Looking for a **Codex 桌面组件 / 任务组件 / 任务进度侧边栏**? See the [Chinese introduction](README.zh-CN.md).
+
+## Credits and license
+
+Thanks to [vinzdg/codenotch](https://github.com/vinzdg/codenotch) for exploring this screen-edge interaction. The edge shape and spring animations come from CodeNotch; its original notice is preserved in [LICENSE-Codenotch](LICENSE-Codenotch).
+
+TaskPulse is open source under [MIT](LICENSE). Contributions and feedback are welcome.

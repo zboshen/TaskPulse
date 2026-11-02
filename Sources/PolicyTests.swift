@@ -33,5 +33,21 @@ func runPolicyTests() {
     precondition(SidebarSizing.moved(start:0.5,translation:-1000,travel:500) == 0)
     precondition(SidebarSizing.moved(start:0.5,translation:1000,travel:500) == 1)
     precondition(SidebarSizing.moved(start:0.5,translation:100,travel:0) == 0.5)
-    print("PASS: 20 task, sizing, movement and boundary checks")
+    precondition(L10n.usesChinese(["zh-Hans-CN","en-US"]))
+    precondition(L10n.usesChinese(["zh-Hant-TW"]))
+    precondition(L10n.usesChinese(["zh_Hans"]))
+    precondition(!L10n.usesChinese(["en-US","zh-Hans"]))
+    precondition(!L10n.usesChinese(["fr-FR","zh-Hans"]))
+    precondition(!L10n.usesChinese([]))
+    for value in L10n.english.values {
+        precondition(!value.isEmpty && !value.unicodeScalars.contains { (0x3400...0x4DBF).contains($0.value) || (0x4E00...0x9FFF).contains($0.value) })
+    }
+    let previous = L10n.overrideLanguage
+    L10n.overrideLanguage = "en"
+    precondition(L10n.text("进行中") == "In progress" && L10n.text("开机启动") == "Launch at login")
+    precondition(L10n.summary(running:2,unread:1) == "2 running · 1 unread")
+    L10n.overrideLanguage = "zh-Hans"
+    precondition(L10n.text("进行中") == "进行中")
+    L10n.overrideLanguage = previous
+    print("PASS: task, sizing, movement, language selection and translation checks")
 }

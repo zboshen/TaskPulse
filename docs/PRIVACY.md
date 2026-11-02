@@ -1,28 +1,32 @@
-# 隐私与兼容性
+# Privacy and compatibility
 
-TaskPulse 是独立社区项目，与 OpenAI 无隶属关系，不是官方客户端。
+TaskPulse is an independent community project, not affiliated with OpenAI.
 
-## 本机读取
+## Local data access
 
-- `~/.codex/state_5.sqlite`：会话名称、归档状态。
-- `~/.codex/thread_history_1.sqlite`：当前轮执行状态、开始与完成时间。SQL 仅选择所需列，不读取消息正文列。
-- `~/.codex/.codex-global-state.json`：当前账户、默认本地主机的界面未读列表，不合并其他账户、远程主机或历史迁移列表。
-- `~/.codex/auth.json`：仅在内存解析身份声明，用于选择正确账户的未读列表；不使用令牌发请求，不保存、不打印或上传令牌。
+- `~/.codex/state_5.sqlite`: conversation names and archive state.
+- `~/.codex/thread_history_1.sqlite`: current turn status, start and completion times. The query selects metadata columns, not message body columns.
+- `~/.codex/.codex-global-state.json`: the current account's default local host unread list. Other accounts, remote hosts, and legacy migration lists are not merged.
+- `~/.codex/auth.json`: identity claims are parsed in memory to select the correct account's unread list. Tokens are not used for network requests, saved, printed, or uploaded.
 
-数据库使用只读连接；不更改会话或已读状态。点击会话交由 Codex 打开，由原应用记录实际已读。关闭完成卡片仅保存组件本地的收起标记。
+Databases are opened read-only. TaskPulse does not write conversation or read-state data. Opening a conversation delegates to Codex, which records the real read state. Dismissing a result only stores a local widget preference for that turn.
 
-## 保存与联网
+## Preferences and network access
 
-偏好设置保存在本机 UserDefaults：显示器、吸附侧、位置、尺寸、Dock 显示和收起标记。开机启动由 macOS 登录项管理。
+Local UserDefaults store the display, edge, position, size, Dock visibility, and dismissed-result markers. Launch at login is managed by macOS Login Items.
 
-没有遥测、广告或自建后端。状态同步不发网络请求。点击“新建任务”或会话时调用本机 `codex://` 链接；由 Codex 自行处理后续行为。首版不含自动更新器，版本更新请查看 GitHub Releases。
+There is no telemetry, advertising, or custom backend. Status sync makes no network requests. New-chat and conversation buttons open local `codex://` links; Codex handles subsequent behavior. There is no auto-updater in this release. Get updates from GitHub Releases.
 
-## 兼容边界
+## Language and time
 
-适配的是当前桌面版本的本机数据结构，不是稳定的官方任务订阅 API。应用升级后，字段或路径变化可能导致“连接暂不可用”，此时请提交 Issue，并提供应用版本及错误摘要。
+The interface uses Chinese when the first macOS preferred language is Chinese, and English for all other languages. Conversation titles are not translated. Language changes do not alter task data or the existing Asia/Shanghai date and running-task filtering rules.
 
-仅跟进默认本机执行主机上的 Codex 会话。不支持远程主机、独立 ChatGPT/网页版，以及应用内走独立 ChatGPT 后端的普通聊天。运行中的时间过滤及日期显示当前采用 Asia/Shanghai（北京时间）。未提供真实百分比，因此不展示推算的完成百分比。
+## Compatibility boundaries
 
-## 报告问题
+The adapter reads current local desktop schemas, not a stable official task-subscription API. A desktop update may change paths or fields and produce a connection error. Only the default local Codex execution host is supported. Remote tasks, standalone ChatGPT/web, and ordinary conversations using a separate ChatGPT backend are not covered.
 
-请勿上传 `auth.json`、数据库、完整日志或 `--dump` 的原始输出。截图请遮盖私人任务标题。提供系统版本、架构、Codex 版本和问题步骤通常即可。
+Running tasks are limited to turns started today in Asia/Shanghai. No actual completion percentage is available, so TaskPulse does not invent one.
+
+## Reporting a problem
+
+Do not upload `auth.json`, databases, full logs, or raw `--dump` output. Redact private task titles from screenshots. Your macOS version, architecture, Codex version, error summary, and reproduction steps are usually enough.

@@ -3,7 +3,7 @@ import Foundation
 enum ContentSize: String, CaseIterable, Identifiable {
     case small, medium, large
     var id: String { rawValue }
-    var title: String { switch self { case .small: return "小"; case .medium: return "中"; case .large: return "大" } }
+    var title: String { switch self { case .small: return L10n.text("小"); case .medium: return L10n.text("中"); case .large: return L10n.text("大") } }
     var scale: CGFloat { switch self { case .small: return 0.88; case .medium: return 1; case .large: return 1.18 } }
     var width: CGFloat { switch self { case .small: return 300; case .medium: return 346; case .large: return 420 } }
 }

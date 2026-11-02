@@ -27,7 +27,7 @@ final class TaskPanel: NSPanel {
         change = store.objectWillChange.sink { [weak self] in DispatchQueue.main.async { self?.layout() } }
         NotificationCenter.default.addObserver(self,selector:#selector(screensChanged),name:NSApplication.didChangeScreenParametersNotification,object:nil)
         status = NSStatusBar.system.statusItem(withLength:NSStatusItem.variableLength)
-        status.button?.image = NSImage(systemSymbolName:"sidebar.right",accessibilityDescription:"任务脉搏")
+        status.button?.image = NSImage(systemSymbolName:"sidebar.right",accessibilityDescription:L10n.text("任务脉搏"))
         status.button?.target = self; status.button?.action = #selector(toggle)
         layout(); panel.orderFrontRegardless(); store.start()
     }
@@ -54,6 +54,9 @@ final class TaskPanel: NSPanel {
 
 @main struct TaskPulse {
     @MainActor static func main() {
+        if let index = CommandLine.arguments.firstIndex(of:"--language"), CommandLine.arguments.count > index+1 {
+            L10n.overrideLanguage = CommandLine.arguments[index+1]
+        }
         if CommandLine.arguments.contains("--self-test") { runPolicyTests(); return }
         if CommandLine.arguments.contains("--dump") {
             do {
