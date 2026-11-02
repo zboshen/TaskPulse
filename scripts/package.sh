@@ -9,4 +9,4 @@ ditto "$APP" dist/dmg-root/TaskPulse.app
 [[ -L dist/dmg-root/Applications ]] || ln -s /Applications dist/dmg-root/Applications
 ditto -c -k --sequesterRsrc --keepParent "$APP" dist/TaskPulse.zip
 hdiutil create -volname TaskPulse -srcfolder dist/dmg-root -ov -format UDZO dist/TaskPulse.dmg
-shasum -a 256 dist/TaskPulse.dmg dist/TaskPulse.zip > dist/SHA256SUMS.txt
+(cd dist && shasum -a 256 TaskPulse.dmg TaskPulse.zip > SHA256SUMS.txt)
