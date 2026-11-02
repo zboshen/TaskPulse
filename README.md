@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/icon.png" width="112" alt="TaskPulse icon"></p>
-<h1 align="center">TaskPulse · 任务脉搏</h1>
-<p align="center"><b>让 Codex 放手去做，让任务进度留在眼角。</b><br>A lightweight macOS edge widget for your Codex tasks.</p>
+<h1 align="center">TaskPulse · 任务脉搏<br>Codex 桌面任务组件</h1>
+<p align="center"><b>让 Codex 放手去做，让任务进度留在眼角。</b><br>A lightweight Codex desktop widget &amp; task tracker for macOS.</p>
 <p align="center">
 <a href="https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg">下载 macOS App</a> ·
 <a href="https://github.com/zboshen/TaskPulse/releases">版本更新</a> ·
@@ -10,7 +10,11 @@
 
 <p align="center"><img src="assets/preview.png" width="380" alt="TaskPulse 虚构任务演示：进行中与未读完成任务"></p>
 
-Codex 同时跑着几个任务时，你无需反复切回窗口确认。TaskPulse 在屏幕边缘留一张小卡片：正在做什么、哪些结果等你查看，一眼就能知道。
+TaskPulse 是一款轻量级 **Codex 桌面组件**，也是专注执行状态的 **Codex 任务组件**。它把任务进度侧边栏吸附在 Mac 屏幕边缘：哪些会话正在执行、哪些结果完成但尚未阅读，一眼就能知道。
+
+Codex 同时跑着几个任务时，这张 macOS 桌面任务卡片会帮你跟进进度，无需反复切回主窗口。原生菜单栏常驻，支持主副显示器、拖动布局与开机启动。
+
+**Codex desktop widget · task tracker · task monitor · macOS sidebar**
 
 界面与动效受 [CodeNotch](https://github.com/vinzdg/codenotch) 启发，并直接复用了其 MIT 授权的贴边轮廓与弹簧动画。TaskPulse 将这个交互收敛到一个目标：**跟进 Codex 的本机任务执行状态**。
 

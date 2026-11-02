@@ -1,8 +1,8 @@
-# TaskPulse
+# TaskPulse — Codex Desktop Widget & Task Tracker
 
 **Let Codex work. Keep its progress in the corner of your eye.**
 
-A small native macOS edge widget for local Codex tasks, inspired by [CodeNotch](https://github.com/vinzdg/codenotch).
+A lightweight **Codex desktop widget** and **task tracker for macOS**. This native task monitor keeps running conversations and unread completions in a screen-edge sidebar, so you can follow Codex task progress without repeatedly switching windows. Inspired by [CodeNotch](https://github.com/vinzdg/codenotch).
 
 [Download for macOS](https://github.com/zboshen/TaskPulse/releases/latest/download/TaskPulse.dmg) · [Releases](https://github.com/zboshen/TaskPulse/releases) · [中文](README.md)
 
