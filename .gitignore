@@ -1,0 +1,9 @@
+dist/
+upstream/
+/preview.png
+assets/AppIcon.iconset/
+.DS_Store
+*.log
+*.sqlite*
+auth.json
+.codex/
