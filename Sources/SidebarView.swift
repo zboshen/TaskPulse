@@ -101,10 +101,10 @@ struct SidebarView: View {
                 if store.runningCount > 0 && store.error == nil {
                     CompactActivityCore()
                 } else {
-                    Capsule().fill(mint.opacity(0.22)).frame(width:2,height:16)
+                    Capsule().fill(mint.opacity(0.22)).frame(width:SidebarSizing.collapsedCoreWidth,height:SidebarSizing.collapsedCoreHeight)
                 }
             }
-            .frame(width:6,height:40)
+            .frame(width:SidebarSizing.collapsedPillWidth,height:SidebarSizing.collapsedPillHeight)
             .padding(.horizontal,2)
             .frame(width:SidebarSizing.collapsedWidth,height:SidebarSizing.collapsedHeight,
                    alignment:store.edge == "right" ? .trailing : .leading)
@@ -304,7 +304,7 @@ private struct CompactActivityCore: View {
     var body: some View {
         Capsule()
             .fill(mint)
-            .frame(width:2,height:16)
+            .frame(width:SidebarSizing.collapsedCoreWidth,height:SidebarSizing.collapsedCoreHeight)
             .opacity(reduceMotion ? 0.85 : (glowing ? 1 : 0.3))
             .scaleEffect(x:1,y:reduceMotion ? 1 : (glowing ? 1 : 0.85))
             .shadow(color:mint.opacity(glowing && !reduceMotion ? 0.35 : 0),radius:2)
