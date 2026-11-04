@@ -8,6 +8,9 @@ enum ContentSize: String, CaseIterable, Identifiable {
     var width: CGFloat { switch self { case .small: return 300; case .medium: return 346; case .large: return 420 } }
 }
 enum SidebarSizing {
+    static let collapsedWidth: CGFloat = 12
+    static let collapsedHeight: CGFloat = 56
+
     static func position(_ proposed:CGFloat) -> CGFloat {
         min(1,max(0,proposed.isFinite ? proposed : 0.5))
     }

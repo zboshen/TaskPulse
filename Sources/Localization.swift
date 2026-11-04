@@ -21,6 +21,7 @@ enum L10n {
         return isChinese ? "\(minutes/60)时\(minutes%60)分" : "\(minutes/60)h \(minutes%60)m"
     }
     static let english: [String:String] = [
+        "展开任务组件": "Expand task widget",
         "待机": "Standby",
         "等待 Codex 活动": "Waiting for Codex",
         "有新任务时自动同步": "New activity will sync automatically",

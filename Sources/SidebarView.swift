@@ -23,13 +23,16 @@ struct SidebarView: View {
             }.frame(maxHeight:store.availableHeight - 44).transition(.opacity.combined(with:.offset(x:store.edge == "right" ? 14 : -14))) }
             else { compactContent.transition(.opacity) }
         }
-        .padding(.vertical,22)
-        .padding(.horizontal,expanded ? pt(25) : 12)
-        .frame(width:expanded ? store.panelWidth : 64)
+        .padding(.vertical,expanded ? 22 : 0)
+        .padding(.horizontal,expanded ? pt(25) : 0)
+        .frame(width:expanded ? store.panelWidth : SidebarSizing.collapsedWidth,
+               height:expanded ? nil : SidebarSizing.collapsedHeight)
         .background {
-            SideNotchShape(edge:store.edge == "right" ? .right : .left)
-                .fill(Color(red:0.035,green:0.04,blue:0.045))
-                .overlay { SideNotchShape(edge:store.edge == "right" ? .right : .left).stroke(.white.opacity(0.10),lineWidth:0.7) }
+            if expanded {
+                SideNotchShape(edge:store.edge == "right" ? .right : .left)
+                    .fill(Color(red:0.035,green:0.04,blue:0.045))
+                    .overlay { SideNotchShape(edge:store.edge == "right" ? .right : .left).stroke(.white.opacity(0.10),lineWidth:0.7) }
+            }
         }
         .overlay(alignment:store.edge == "right" ? .leading : .trailing) {
             if expanded { resizeHandle }
@@ -92,16 +95,22 @@ struct SidebarView: View {
             .onEnded { _ in resizeStart = nil; resizeMouseStart = nil; store.saveSize() })
     }
     var compactContent: some View {
-        VStack(spacing:16) {
-            Image(systemName:"sparkle").font(.system(size:20,weight:.medium)).foregroundStyle(mint)
-            ForEach(store.visible) { task in
-                Group {
-                    if task.running { PulseSpinner() }
-                    else { Circle().fill(mint).frame(width:7,height:7) }
-                }.frame(height:19)
+        Capsule()
+            .fill(Color.black.opacity(0.78))
+            .overlay {
+                if store.runningCount > 0 && store.error == nil {
+                    CompactActivityCore()
+                } else {
+                    Capsule().fill(mint.opacity(0.22)).frame(width:2,height:16)
+                }
             }
-            if store.visible.isEmpty { Circle().fill(.white.opacity(0.25)).frame(width:5,height:5) }
-        }.contentShape(Rectangle()).onTapGesture { store.expanded = true }
+            .frame(width:6,height:40)
+            .padding(.horizontal,2)
+            .frame(width:SidebarSizing.collapsedWidth,height:SidebarSizing.collapsedHeight,
+                   alignment:store.edge == "right" ? .trailing : .leading)
+            .contentShape(Rectangle())
+            .accessibilityLabel(L10n.text("展开任务组件"))
+            .onTapGesture { store.expanded = true }
     }
     var fullContent: some View {
         VStack(alignment:.leading,spacing:pt(19)) {
@@ -285,5 +294,31 @@ private struct PulseSpinner: View {
             .frame(width:14,height:14)
             .onAppear { if !reduceMotion { withAnimation(.linear(duration:1).repeatForever(autoreverses:false)) { spinning = true } } }
             .accessibilityLabel(L10n.text("正在执行"))
+    }
+}
+
+private struct CompactActivityCore: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var glowing = false
+
+    var body: some View {
+        Capsule()
+            .fill(mint)
+            .frame(width:2,height:16)
+            .opacity(reduceMotion ? 0.85 : (glowing ? 1 : 0.3))
+            .scaleEffect(x:1,y:reduceMotion ? 1 : (glowing ? 1 : 0.85))
+            .shadow(color:mint.opacity(glowing && !reduceMotion ? 0.35 : 0),radius:2)
+            .onAppear { updateMotion() }
+            .onChange(of:reduceMotion) { _, _ in updateMotion() }
+            .accessibilityLabel(L10n.text("正在执行"))
+    }
+
+    private func updateMotion() {
+        withAnimation(nil) { glowing = false }
+        if !reduceMotion {
+            withAnimation(.easeInOut(duration:1.4).repeatForever(autoreverses:true)) {
+                glowing = true
+            }
+        }
     }
 }

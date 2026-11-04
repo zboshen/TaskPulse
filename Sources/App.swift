@@ -40,9 +40,11 @@ final class TaskPanel: NSPanel {
         let availableHeight = max(120,screen.visibleFrame.height-24)
         if store.availableWidth != availableWidth { store.availableWidth = availableWidth }
         if store.availableHeight != availableHeight { store.availableHeight = availableHeight }
-        let width:CGFloat = store.expanded ? SidebarSizing.width(store.panelWidth,available:availableWidth) : 64
+        let width:CGFloat = store.expanded ? SidebarSizing.width(store.panelWidth,available:availableWidth) : SidebarSizing.collapsedWidth
         if store.expanded && store.panelWidth != width { store.panelWidth = width }
-        let height = min(host.fittingSize.height,screen.visibleFrame.height-24)
+        let height = store.expanded
+            ? min(host.fittingSize.height,screen.visibleFrame.height-24)
+            : SidebarSizing.collapsedHeight
         let x = store.edge == "right" ? screen.frame.maxX-width : screen.frame.minX
         let travel = max(0,screen.visibleFrame.height-height-24)
         store.verticalTravel = travel
@@ -72,6 +74,7 @@ final class TaskPanel: NSPanel {
                let size = ContentSize(rawValue:CommandLine.arguments[index+1]) {
                 store.contentSize = size; store.panelWidth = size.width
             }
+            if CommandLine.arguments.contains("--collapsed") { store.expanded = false }
             let view = SidebarView(store:store)
             let renderer = ImageRenderer(content:view)
             renderer.scale = 2
