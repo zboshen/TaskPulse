@@ -21,6 +21,10 @@ enum L10n {
         return isChinese ? "\(minutes/60)时\(minutes%60)分" : "\(minutes/60)h \(minutes%60)m"
     }
     static let english: [String:String] = [
+        "待机": "Standby",
+        "等待 Codex 活动": "Waiting for Codex",
+        "有新任务时自动同步": "New activity will sync automatically",
+        "待机 · 自动同步": "Standby · Auto-sync",
         "打开会话数据库失败": "Could not open the conversation database",
         "打开任务历史数据库失败": "Could not open the task history database",
         "初始化只读连接失败": "Could not initialize the read-only connection",

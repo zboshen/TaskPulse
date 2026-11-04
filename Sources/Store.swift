@@ -7,6 +7,8 @@ import OSLog
     @Published var launchAtLogin = false
     @Published var loginNeedsApproval = false
     @Published var settingsMessage: String?
+    @Published var diagnosticsCopied = false
+    @Published var waitingForActivity = false
     var snapshotMode = false
     @Published var tasks: [TaskEntry] = []
     @Published var error: String?
@@ -52,7 +54,7 @@ import OSLog
         let report = connectionReport ?? ConnectionDiagnostics.report(error: nil, lastSuccess: lastRefresh, failures: 0)
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(report, forType: .string)
-        settingsMessage = L10n.text("连接诊断已复制")
+        diagnosticsCopied = true
     }
     var visible: [TaskEntry] { TaskPolicy.visible(tasks,dismissed:dismissed) }
     var runningCount: Int { tasks.filter(\.running).count }
@@ -76,33 +78,45 @@ import OSLog
         DispatchQueue.global(qos:.utility).async {
             let result = Result { try LocalTaskReader().read() }
             DispatchQueue.main.async {
-                self.loading = false
-                guard !self.demo else { return }
-                switch result {
-                case .success(let tasks):
-                    if self.consecutiveReadFailures > 0 {
-                        self.connectionLog.info("Database reads recovered after \(self.consecutiveReadFailures) failed refreshes")
-                    }
-                    self.tasks = tasks
-                    self.error = nil
-                    self.lastRefresh = Date()
-                    self.consecutiveReadFailures = 0
-                    self.connectionReport = nil
-                case .failure(let error):
-                    let changed = self.error != error.localizedDescription
-                    self.error = error.localizedDescription
-                    self.tasks = []
-                    self.consecutiveReadFailures += 1
-                    let report = ConnectionDiagnostics.report(error: error, lastSuccess: self.lastRefresh,
-                                                              failures: self.consecutiveReadFailures)
-                    self.connectionReport = report
-                    if changed || self.consecutiveReadFailures == 1 || self.consecutiveReadFailures % 30 == 0 {
-                        self.connectionLog.error("\(report, privacy: .public)")
-                    }
+                self.finishRefresh(result)
+            }
+        }
+    }
+
+    func finishRefresh(_ result: Result<[TaskEntry], Error>) {
+        self.loading = false
+        guard !self.demo else { return }
+        switch result {
+        case .success(let tasks):
+            if self.consecutiveReadFailures > 0 {
+                self.connectionLog.info("Database reads recovered after \(self.consecutiveReadFailures) failed refreshes")
+            }
+            self.tasks = tasks
+            self.error = nil
+            self.waitingForActivity = false
+            self.diagnosticsCopied = false
+            self.lastRefresh = Date()
+            self.consecutiveReadFailures = 0
+            self.connectionReport = nil
+        case .failure(let error):
+            let changed = self.error != error.localizedDescription
+            self.error = error.localizedDescription
+            self.waitingForActivity = (error as? SourceFailure)?.waitingForActivity == true
+            self.tasks = []
+            self.consecutiveReadFailures += 1
+            let report = ConnectionDiagnostics.report(error: error, lastSuccess: self.lastRefresh,
+                                                      failures: self.consecutiveReadFailures)
+            self.connectionReport = report
+            if changed || self.consecutiveReadFailures == 1 || self.consecutiveReadFailures % 30 == 0 {
+                if self.waitingForActivity {
+                    self.connectionLog.info("\(report, privacy: .public)")
+                } else {
+                    self.connectionLog.error("\(report, privacy: .public)")
                 }
             }
         }
     }
+
     func newTask() {
         // The desktop app routes codex://new?mode=codex to a blank new-thread composer.
         guard let url = URL(string:"codex://new?mode=codex") else { return }

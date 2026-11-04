@@ -36,3 +36,9 @@ Run `./scripts/test-database.sh` to exercise the actual reader in an isolated pr
 The v0.3.1 reader explicitly enables `SQLITE_OPEN_URI`, binds the ATTACH filename, waits up to one second for SQLite locks, and retries a transient failure once after 150 ms before the next regular refresh. The screen shows an awaiting-sync state while data is unavailable.
 
 This test reproduces a confirmed URI-configuration defect. Historical intermittent failures lacked stage/error-code diagnostics, so attributing those incidents requires a new diagnostic capture.
+
+### Closed WAL databases and standby
+
+On macOS SQLite 3.51.0, attaching a closed WAL-mode history database after its sidecars have been cleaned up reproduces `SQLITE_CANTOPEN` with errno 2, even though the main file is readable. TaskPulse classifies this specific signature as **Waiting for Codex**. The detector requires a valid SQLite WAL header, readable main file, and absence of both WAL and SHM files. The regular refresh resumes task display when activity recreates the sidecars. Other SQLite versions may read a closed WAL directly, so the regression accepts a successful read too.
+
+A successful refresh clears the copied-diagnostics notice. The regression checks this through the same completion handler used by normal background refreshes.

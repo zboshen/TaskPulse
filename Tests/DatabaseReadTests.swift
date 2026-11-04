@@ -43,6 +43,29 @@ func runDatabaseReadTests() throws {
     precondition(tasks.count == 1 && tasks[0].title == "Fixture task")
     print("PASS: real LocalTaskReader with URI defaults disabled and special path characters")
 
+    try database(history, sql: "PRAGMA journal_mode=WAL;")
+    precondition(!FileManager.default.fileExists(atPath: history.path + "-wal"))
+    precondition(!FileManager.default.fileExists(atPath: history.path + "-shm"))
+    precondition(ConnectionDiagnostics.isWaitingForActivity(file: history, sqliteCode: SQLITE_CANTOPEN, systemError: 2))
+    do {
+        // Some SQLite versions can recreate the sidecars on a read-only connection.
+        let idleRead = try reader.read()
+        precondition(idleRead.count == 1)
+    } catch let failure as SourceFailure {
+        precondition(failure.waitingForActivity && !failure.retryable)
+        let report = ConnectionDiagnostics.report(error: failure, lastSuccess: nil, failures: 1, root: root)
+        precondition(report.contains("status=waiting_for_activity"))
+    }
+    precondition(!ConnectionDiagnostics.isWaitingForActivity(file: history, sqliteCode: SQLITE_CANTOPEN, systemError: 13))
+    var writer: OpaquePointer?
+    precondition(sqlite3_open_v2(history.path, &writer, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK)
+    precondition(sqlite3_exec(writer, "SELECT count(*) FROM thread_turns", nil, nil, nil) == SQLITE_OK)
+    let activeTasks = try reader.read()
+    precondition(activeTasks.count == 1)
+    sqlite3_close(writer)
+    try database(history, sql: "PRAGMA journal_mode=DELETE;")
+    print("PASS: closed WAL is standby; activity recreating sidecars restores live reads")
+
     let backup = root.appendingPathComponent("history.backup")
     try FileManager.default.moveItem(at: history, to: backup)
     do {

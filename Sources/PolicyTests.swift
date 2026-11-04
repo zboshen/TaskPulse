@@ -1,5 +1,5 @@
 import Foundation
-func runPolicyTests() {
+@MainActor func runPolicyTests() {
     func task(_ n:Int,_ status:String = "inProgress",unread:Bool = false) -> TaskEntry {
         TaskEntry(id:String(n),turnID:"turn",title:"task",status:status,startedAt:Double(n),completedAt:Double(n),unread:unread,detail:"",url:"")
     }
@@ -49,5 +49,13 @@ func runPolicyTests() {
     L10n.overrideLanguage = "zh-Hans"
     precondition(L10n.text("进行中") == "进行中")
     L10n.overrideLanguage = previous
-    print("PASS: task, sizing, movement, language selection and translation checks")
+    let store = TaskStore()
+    store.error = "Previous connection error"
+    store.waitingForActivity = true
+    store.diagnosticsCopied = true
+    store.settingsMessage = "Keep unrelated settings feedback"
+    store.finishRefresh(.success([]))
+    precondition(store.error == nil && !store.waitingForActivity && !store.diagnosticsCopied)
+    precondition(store.settingsMessage == "Keep unrelated settings feedback")
+    print("PASS: task, layout, language and recovery notification checks")
 }

@@ -141,12 +141,19 @@ struct SidebarView: View {
                 }
             }.buttonStyle(.plain)
             HStack(spacing:pt(6)) {
-                Circle().fill(store.error == nil ? mint : .orange).frame(width:5,height:5)
+                Circle().fill(store.waitingForActivity ? Color.gray : (store.error == nil ? mint : .orange)).frame(width:5,height:5)
                 Text(store.demo ? L10n.text("演示预览") : "CODEX · GPT").tracking(1.5)
                 Spacer()
-                Text(store.error == nil ? L10n.summary(running:store.runningCount,unread:store.unreadCount) : L10n.text("状态待同步")).fixedSize()
+                Text(store.error == nil ? L10n.summary(running:store.runningCount,unread:store.unreadCount) : L10n.text(store.waitingForActivity ? "待机" : "状态待同步")).fixedSize()
             }.font(.system(size:pt(10),weight:.medium)).foregroundStyle(.secondary)
-            if let error = store.error, !store.demo {
+            if store.waitingForActivity && !store.demo {
+                VStack(spacing:pt(10)) {
+                    Image(systemName:"moon.zzz").font(.system(size:pt(28),weight:.ultraLight)).foregroundStyle(.secondary)
+                    Text(L10n.text("等待 Codex 活动")).font(.system(size:pt(14),weight:.medium))
+                    Text(L10n.text("有新任务时自动同步"))
+                        .font(.system(size:pt(11))).foregroundStyle(.secondary)
+                }.frame(maxWidth:.infinity).padding(.vertical,22)
+            } else if let error = store.error, !store.demo {
                 Label(L10n.text("连接暂不可用"),systemImage:"exclamationmark.triangle").foregroundStyle(.orange)
                 Text(error).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
                 HStack {
@@ -168,13 +175,16 @@ struct SidebarView: View {
                 let hidden = store.runningCount + store.unreadCount - store.visible.count
                 if hidden > 0 { Text(L10n.more(hidden)).font(.system(size:pt(10))).foregroundStyle(.tertiary) }
             }
+            if store.diagnosticsCopied && store.error != nil {
+                Text(L10n.text("连接诊断已复制")).font(.system(size:pt(10))).foregroundStyle(.secondary)
+            }
             if let message = store.settingsMessage {
                 Text(message).font(.system(size:pt(10))).foregroundStyle(.orange)
                     .fixedSize(horizontal:false,vertical:true)
             }
             Rectangle().fill(.white.opacity(0.08)).frame(height:1)
             HStack {
-                Text(store.demo ? L10n.text("演示数据") : L10n.text(store.error == nil ? "本机同步 · 每 2 秒" : "自动重连 · 每 2 秒"))
+                Text(store.demo ? L10n.text("演示数据") : L10n.text(store.waitingForActivity ? "待机 · 自动同步" : (store.error == nil ? "本机同步 · 每 2 秒" : "自动重连 · 每 2 秒")))
                 Spacer()
                 Text(L10n.text("最多 5 条"))
             }.font(.system(size:pt(10))).foregroundStyle(.tertiary)

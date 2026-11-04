@@ -31,6 +31,7 @@ struct SourceFailure: LocalizedError {
     let message: String
     var diagnostic: String? = nil
     var retryable = false
+    var waitingForActivity = false
     var errorDescription: String? { message }
 }
 final class LocalTaskReader {
@@ -61,12 +62,15 @@ final class LocalTaskReader {
                 .replacingOccurrences(of: root.path, with: "~/.codex")
                 .replacingOccurrences(of: root.absoluteString, with: "file://~/.codex/")
             let primaryCode = code & 0xff
-            let retryable = [SQLITE_CANTOPEN, SQLITE_BUSY, SQLITE_LOCKED, SQLITE_IOERR].contains(primaryCode)
+            let waiting = ConnectionDiagnostics.isWaitingForActivity(file: file, sqliteCode: code,
+                                                                      systemError: systemError)
+            let retryable = !waiting && [SQLITE_CANTOPEN, SQLITE_BUSY, SQLITE_LOCKED, SQLITE_IOERR].contains(primaryCode)
             let diagnostic = "stage=\(stage) file=\(file.lastPathComponent) sqlite=\(code) errno=\(systemError) detail=\(detail)"
             return SourceFailure(
                 message: L10n.text(stage) + " · " + file.lastPathComponent + "\n" + detail,
                 diagnostic: diagnostic,
-                retryable: retryable
+                retryable: retryable,
+                waitingForActivity: waiting
             )
         }
 
