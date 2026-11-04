@@ -26,3 +26,13 @@ Previews use fictional tasks only. `--language` is a process-local development o
 ## Attribution
 
 `SideNotchShape.swift` and `NotchMotion.swift` are from [CodeNotch](https://github.com/vinzdg/codenotch), commit `6522e9f3ee0fe35d46e428b441e6e80b586eacbb`. Its original MIT notice is in `LICENSE-Codenotch`. TaskPulse provides the task filtering, desktop layout, local state adapter, and preferences.
+
+## Connection diagnostics
+
+The error panel and settings menu include **Copy connection diagnostics**. The report contains the failed read stage, database filename, SQLite extended code, OS errno, file readability/size, and the last successful refresh time. The same metadata is recorded in macOS Console under subsystem `site.momentu.taskpulse`, category `connection`.
+
+Run `./scripts/test-database.sh` to exercise the actual reader in an isolated process with SQLite's global URI default disabled. It covers paths containing spaces, quotes, percent signs and non-ASCII characters, a missing history database, and recovery after restoration. This check is also part of CI.
+
+The v0.3.1 reader explicitly enables `SQLITE_OPEN_URI`, binds the ATTACH filename, waits up to one second for SQLite locks, and retries a transient failure once after 150 ms before the next regular refresh. The screen shows an awaiting-sync state while data is unavailable.
+
+This test reproduces a confirmed URI-configuration defect. Historical intermittent failures lacked stage/error-code diagnostics, so attributing those incidents requires a new diagnostic capture.

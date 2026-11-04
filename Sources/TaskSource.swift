@@ -27,33 +27,82 @@ enum TaskPolicy {
     }
 }
 
-struct SourceFailure: LocalizedError { let message: String; var errorDescription: String? { message } }
+struct SourceFailure: LocalizedError {
+    let message: String
+    var diagnostic: String? = nil
+    var retryable = false
+    var errorDescription: String? { message }
+}
 final class LocalTaskReader {
     let root: URL
     init(root: URL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex")) { self.root = root }
     func read() throws -> [TaskEntry] {
+        do {
+            return try readOnce()
+        } catch let failure as SourceFailure where failure.retryable {
+            // Reopen both databases after transient WAL/locking or file replacement races.
+            Thread.sleep(forTimeInterval: 0.15)
+            return try readOnce()
+        }
+    }
+
+    private func readOnce() throws -> [TaskEntry] {
         let unreadIDs = try DesktopUnread.ids(root:root)
         var db: OpaquePointer?
-        let path = root.appendingPathComponent("state_5.sqlite").path
-        guard sqlite3_open_v2(path, &db, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil) == SQLITE_OK else {
+        let catalog = root.appendingPathComponent("state_5.sqlite")
+        let history = root.appendingPathComponent("thread_history_1.sqlite")
+        let flags = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_URI
+
+        func failure(_ stage: String, file: URL) -> SourceFailure {
+            // Capture SQLite's errno before filesystem probes can change process errno.
+            let code = sqlite3_extended_errcode(db)
+            let systemError = sqlite3_system_errno(db)
+            let detail = String(cString: sqlite3_errmsg(db))
+                .replacingOccurrences(of: root.path, with: "~/.codex")
+                .replacingOccurrences(of: root.absoluteString, with: "file://~/.codex/")
+            let primaryCode = code & 0xff
+            let retryable = [SQLITE_CANTOPEN, SQLITE_BUSY, SQLITE_LOCKED, SQLITE_IOERR].contains(primaryCode)
+            let diagnostic = "stage=\(stage) file=\(file.lastPathComponent) sqlite=\(code) errno=\(systemError) detail=\(detail)"
+            return SourceFailure(
+                message: L10n.text(stage) + " · " + file.lastPathComponent + "\n" + detail,
+                diagnostic: diagnostic,
+                retryable: retryable
+            )
+        }
+
+        guard sqlite3_open_v2(catalog.path, &db, flags, nil) == SQLITE_OK else {
+            let error = failure("打开会话数据库失败", file: catalog)
             if let db { sqlite3_close(db) }
-            throw SourceFailure(message: L10n.text("无法读取 Codex 数据库，请检查数据目录"))
+            throw error
         }
         defer { sqlite3_close(db) }
-        sqlite3_busy_timeout(db, 250)
-        func run(_ sql: String) throws {
+        sqlite3_extended_result_codes(db, 1)
+        sqlite3_busy_timeout(db, 1000)
+
+        func run(_ sql: String, stage: String, file: URL) throws {
             guard sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK else {
-                throw SourceFailure(message: String(cString: sqlite3_errmsg(db)))
+                throw failure(stage, file: file)
             }
         }
-        // SQLite URI prevents ATTACH from creating or writing a missing history store.
-        let history = root.appendingPathComponent("thread_history_1.sqlite")
-        guard FileManager.default.fileExists(atPath: history.path) else { throw SourceFailure(message: L10n.text("缺少 Codex 任务历史库")) }
+
+        // URI handling is explicitly enabled on the connection, including ATTACH.
+        // mode=ro also prevents creating an empty history database during rotation.
+        var attach: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "ATTACH DATABASE ? AS history", -1, &attach, nil) == SQLITE_OK else {
+            throw failure("打开任务历史数据库失败", file: history)
+        }
+        defer { sqlite3_finalize(attach) }
         let uri = history.absoluteString + "?mode=ro"
-        try run("ATTACH DATABASE '\(uri.replacingOccurrences(of: "'", with: "''"))' AS history")
-        try run("PRAGMA query_only=ON")
-        try run("BEGIN")
-        defer { try? run("ROLLBACK") }
+        let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+        guard sqlite3_bind_text(attach, 1, uri, -1, transient) == SQLITE_OK,
+              sqlite3_step(attach) == SQLITE_DONE else {
+            throw failure("打开任务历史数据库失败", file: history)
+        }
+        // Release this statement before starting the cross-database read transaction.
+        sqlite3_reset(attach)
+        try run("PRAGMA query_only=ON", stage: "初始化只读连接失败", file: catalog)
+        try run("BEGIN", stage: "开始读取任务失败", file: catalog)
+        defer { try? run("ROLLBACK", stage: "结束读取任务失败", file: catalog) }
         let sql = """
         WITH latest AS (
           SELECT *, ROW_NUMBER() OVER(PARTITION BY thread_id ORDER BY rollout_ordinal DESC) AS n
@@ -68,7 +117,7 @@ final class LocalTaskReader {
         """
         var stmt: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            throw SourceFailure(message: L10n.text("Codex 数据结构不兼容：") + String(cString: sqlite3_errmsg(db)))
+            throw failure("读取任务结构失败", file: history)
         }
         defer { sqlite3_finalize(stmt) }
         func str(_ i: Int32) -> String { sqlite3_column_text(stmt,i).map { String(cString:$0) } ?? "" }
@@ -88,7 +137,7 @@ final class LocalTaskReader {
             }
             code = sqlite3_step(stmt)
         }
-        guard code == SQLITE_DONE else { throw SourceFailure(message: L10n.text("任务读取中断")) }
+        guard code == SQLITE_DONE else { throw failure("读取任务数据失败", file: history) }
         return tasks
     }
 }

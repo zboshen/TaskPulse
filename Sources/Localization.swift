@@ -21,6 +21,17 @@ enum L10n {
         return isChinese ? "\(minutes/60)时\(minutes%60)分" : "\(minutes/60)h \(minutes%60)m"
     }
     static let english: [String:String] = [
+        "打开会话数据库失败": "Could not open the conversation database",
+        "打开任务历史数据库失败": "Could not open the task history database",
+        "初始化只读连接失败": "Could not initialize the read-only connection",
+        "开始读取任务失败": "Could not start reading tasks",
+        "结束读取任务失败": "Could not finish reading tasks",
+        "读取任务结构失败": "Could not read the task schema",
+        "读取任务数据失败": "Could not read task data",
+        "复制连接诊断": "Copy connection diagnostics",
+        "连接诊断已复制": "Connection diagnostics copied",
+        "状态待同步": "Awaiting sync",
+        "自动重连 · 每 2 秒": "Auto-retry · Every 2s",
         "任务脉搏": "TaskPulse",
         "左右拖动调整大小": "Drag sideways to resize",
         "拖动调整组件大小": "Resize widget",

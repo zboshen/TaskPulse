@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OSLog
 
 @MainActor final class TaskStore: ObservableObject {
     @Published var dockHidden = UserDefaults.standard.object(forKey:"dockHidden") as? Bool ?? true
@@ -43,6 +44,16 @@ import SwiftUI
     private var timer: Timer?
     private var languageObserver: NSObjectProtocol?
     private var loading = false
+    private var consecutiveReadFailures = 0
+    private var connectionReport: String?
+    private let connectionLog = Logger(subsystem: "site.momentu.taskpulse", category: "connection")
+
+    func copyConnectionDiagnostics() {
+        let report = connectionReport ?? ConnectionDiagnostics.report(error: nil, lastSuccess: lastRefresh, failures: 0)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
+        settingsMessage = L10n.text("连接诊断已复制")
+    }
     var visible: [TaskEntry] { TaskPolicy.visible(tasks,dismissed:dismissed) }
     var runningCount: Int { tasks.filter(\.running).count }
     var unreadCount: Int { tasks.filter { $0.status == "completed" && $0.unread && !dismissed.contains($0.receiptKey) }.count }
@@ -68,8 +79,26 @@ import SwiftUI
                 self.loading = false
                 guard !self.demo else { return }
                 switch result {
-                case .success(let tasks): self.tasks = tasks; self.error = nil; self.lastRefresh = Date()
-                case .failure(let error): self.error = error.localizedDescription; self.tasks = []
+                case .success(let tasks):
+                    if self.consecutiveReadFailures > 0 {
+                        self.connectionLog.info("Database reads recovered after \(self.consecutiveReadFailures) failed refreshes")
+                    }
+                    self.tasks = tasks
+                    self.error = nil
+                    self.lastRefresh = Date()
+                    self.consecutiveReadFailures = 0
+                    self.connectionReport = nil
+                case .failure(let error):
+                    let changed = self.error != error.localizedDescription
+                    self.error = error.localizedDescription
+                    self.tasks = []
+                    self.consecutiveReadFailures += 1
+                    let report = ConnectionDiagnostics.report(error: error, lastSuccess: self.lastRefresh,
+                                                              failures: self.consecutiveReadFailures)
+                    self.connectionReport = report
+                    if changed || self.consecutiveReadFailures == 1 || self.consecutiveReadFailures % 30 == 0 {
+                        self.connectionLog.error("\(report, privacy: .public)")
+                    }
                 }
             }
         }

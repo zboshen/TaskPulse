@@ -144,12 +144,15 @@ struct SidebarView: View {
                 Circle().fill(store.error == nil ? mint : .orange).frame(width:5,height:5)
                 Text(store.demo ? L10n.text("演示预览") : "CODEX · GPT").tracking(1.5)
                 Spacer()
-                Text(L10n.summary(running:store.runningCount,unread:store.unreadCount)).fixedSize()
+                Text(store.error == nil ? L10n.summary(running:store.runningCount,unread:store.unreadCount) : L10n.text("状态待同步")).fixedSize()
             }.font(.system(size:pt(10),weight:.medium)).foregroundStyle(.secondary)
             if let error = store.error, !store.demo {
                 Label(L10n.text("连接暂不可用"),systemImage:"exclamationmark.triangle").foregroundStyle(.orange)
-                Text(error).font(.caption).foregroundStyle(.secondary).lineLimit(3)
-                Button(L10n.text("重新读取")) { store.refresh() }
+                Text(error).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
+                HStack {
+                    Button(L10n.text("重新读取")) { store.refresh() }
+                    Button(L10n.text("复制连接诊断")) { store.copyConnectionDiagnostics() }
+                }
             } else if store.visible.isEmpty {
                 VStack(spacing:pt(10)) {
                     Image(systemName:"checkmark.circle").font(.system(size:pt(28),weight:.ultraLight)).foregroundStyle(mint.opacity(0.65))
@@ -171,7 +174,7 @@ struct SidebarView: View {
             }
             Rectangle().fill(.white.opacity(0.08)).frame(height:1)
             HStack {
-                Text(store.demo ? L10n.text("演示数据") : L10n.text("本机同步 · 每 2 秒"))
+                Text(store.demo ? L10n.text("演示数据") : L10n.text(store.error == nil ? "本机同步 · 每 2 秒" : "自动重连 · 每 2 秒"))
                 Spacer()
                 Text(L10n.text("最多 5 条"))
             }.font(.system(size:pt(10))).foregroundStyle(.tertiary)
@@ -233,6 +236,8 @@ struct SidebarView: View {
         Toggle(L10n.text("开机启动"),isOn:Binding(get:{ store.launchAtLogin },set:{ store.setLaunchAtLogin($0) }))
         if store.loginNeedsApproval { Button(L10n.text("前往系统登录项设置")) { store.openLoginSettings() } }
         Toggle(L10n.text("在 Dock 中隐藏"),isOn:Binding(get:{ store.dockHidden },set:{ store.setDockHidden($0) }))
+        Divider()
+        Button(L10n.text("复制连接诊断")) { store.copyConnectionDiagnostics() }
         Divider()
         Button(L10n.text("恢复垂直居中")) { store.centerPosition() }
         Divider()

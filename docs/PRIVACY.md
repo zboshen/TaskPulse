@@ -30,3 +30,5 @@ Running tasks are limited to turns started today in Asia/Shanghai. No actual com
 ## Reporting a problem
 
 Do not upload `auth.json`, databases, full logs, or raw `--dump` output. Redact private task titles from screenshots. Your macOS version, architecture, Codex version, error summary, and reproduction steps are usually enough.
+
+Connection diagnostics include app/OS/SQLite versions, database filenames and filesystem metadata, failure stages/error codes, and refresh times. Task titles, conversation IDs, and authentication contents are excluded. Reports stay in macOS local logs or are copied to the clipboard when you request them.
